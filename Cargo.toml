@@ -1,7 +1,13 @@
 [package]
 name = "evalrs"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Takeru Ohta <phjgt308@gmail.com>"]
+description = "A Rust code snippet evaluator"
+documentation = "https://docs.rs/evalrs"
+homepage = "https://github.com/sile/evalrs"
+repository = "https://github.com/sile/evalrs"
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 clap = "2.19"
