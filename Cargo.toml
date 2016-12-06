@@ -6,3 +6,4 @@ authors = ["Takeru Ohta <phjgt308@gmail.com>"]
 [dependencies]
 clap = "2.19"
 regex = "0.1"
+tempdir = "0.3"
