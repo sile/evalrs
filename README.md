@@ -52,7 +52,7 @@ $ echo 'extern crate num_cpus; println!("{} CPUs", num_cpus::get())' | evalrs
      Running `target\debug\evalrs_temp.exe`
 4 CPUs
 
-# Second time
+# Second time (cached crates are used)
 $ echo 'extern crate num_cpus; println!("{} CPUs", num_cpus::get())' | evalrs
     Updating registry `https://github.com/rust-lang/crates.io-index`
    Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.4QzdqRG5cY0x)
