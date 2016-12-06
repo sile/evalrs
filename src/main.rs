@@ -33,7 +33,7 @@ fn main() {
 
     // Sets up temporary project.
     let project_dir = TempDir::new("evalrs_temp").expect("Cannot create temporary directory");
-    let cache_dir = env::temp_dir().join(".evalrs.cache/");
+    let cache_dir = env::temp_dir().join("evalrs_cache/");
     {
         // Writes manifest data to `Cargo.toml` file.
         let manifest_file = project_dir.path().join("Cargo.toml");
@@ -55,7 +55,8 @@ fn main() {
         let cache_target_dir = cache_dir.join("target/");
         fs::create_dir_all(cache_target_dir.clone())
             .expect("Cannot create cache 'target/' directory");
-        fs::rename(cache_target_dir, target_dir).expect("Cannot move cache data");
+        fs::rename(cache_target_dir, target_dir)
+            .expect("Cannot move 'target/' from cache directory");
     }
 
     // Builds and executes command
@@ -70,7 +71,10 @@ fn main() {
     {
         let target_dir = project_dir.path().join("target/");
         let cache_target_dir = cache_dir.join("target/");
-        fs::rename(target_dir, cache_target_dir).expect("Cannot move cache data");
+        if !cache_target_dir.exists() {
+            fs::rename(target_dir, cache_target_dir)
+                .expect("Cannot move 'target/' to cache directory");
+        }
     }
 
     if let Some(code) = exit_status.code() {
