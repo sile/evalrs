@@ -28,7 +28,66 @@ $ evalrs -h
 Usage Examples
 --------------
 
+`evalrs` command reads Rust code snippet from the standard input stream and evaluates it:
+
 ```bash
+$ echo 'println!("Hello World!")' | evalrs
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.daiPxHtjV2VR)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.51 secs
+     Running `target\debug\evalrs_temp.exe`
+Hello World!
+```
+
+If target code includes `extern crate` declarations,
+the latest version of those crates will be downloaded and cached:
+
+```bash
+# First time
+$ echo 'extern crate num_cpus; println!("{} CPUs", num_cpus::get())' | evalrs
+    Updating registry `https://github.com/rust-lang/crates.io-index`
+   Compiling libc v0.2.18
+   Compiling num_cpus v1.2.0
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.HSRNyVQbM6s3)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.55 secs
+     Running `target\debug\evalrs_temp.exe`
+4 CPUs
+
+# Second time
+$ echo 'extern crate num_cpus; println!("{} CPUs", num_cpus::get())' | evalrs
+    Updating registry `https://github.com/rust-lang/crates.io-index`
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.4QzdqRG5cY0x)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.24 secs
+     Running `target\debug\evalrs_temp.exe`
+4 CPUs
+```
+
+The command wraps input code snippet (except `extern crate` declarations) with a main function.
+But, if the code has a line which starts with "fn main()",
+it will be passed to `rustc` command without modification.
+
+```bash
+# The first execution is equivalent to the second.
+$ evalrs << EOS
+let a = 1;
+let b = 2;
+println!("a + b = {}", a + b);
+EOS
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.gSXTXNaB6o8o)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.53 secs
+     Running `target/debug/evalrs_temp`
+a + b = 3
+
+$ evalrs << EOS
+fn main() {
+    let a = 1;
+    let b = 2;
+    println!("a + b = {}", a + b);
+}
+EOS
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.0kYvCRAj0TWI)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.20 secs
+     Running `target/debug/evalrs_temp`
+a + b = 3
 ```
 
 Emacs Integration
@@ -63,7 +122,7 @@ Now, you can evaluate Rust code snippet in a buffer quickly:
 ```rust
 extern crate num_cpus;
 
-println!("You have {} CPU cores", num_cpus.get());
+println!("You have {} CPU cores", num_cpus::get());
 
 // Type following to evaluate this buffer:
 //
