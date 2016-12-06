@@ -6,7 +6,7 @@ evalrs
 
 A Rust code snippet evaluator.
 
-This tiny command evaluates Rust source code which read form the standard input stream.
+This tiny command evaluates Rust source code which read from the standard input stream.
 
 It can handle `extern crate` declaration and has simple caching mechanism.
 
