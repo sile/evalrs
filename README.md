@@ -10,7 +10,7 @@ This tiny command evaluates Rust source code which read from the standard input 
 
 It can handle `extern crate` declaration and has simple caching mechanism.
 
-[Documentation](https://docs.rs/evalrs)
+[Documentation](https://docs.rs/crate/evalrs/)
 
 Installation
 ------------
