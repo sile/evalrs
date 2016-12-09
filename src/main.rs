@@ -83,9 +83,15 @@ fn main() {
 }
 
 fn make_manifest(input: &str) -> String {
-    let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;").unwrap();
+    let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;(\s*//(.+$))?").unwrap();
     let dependencies = re.captures_iter(input)
-        .map(|cap| format!("{} = \"*\"\n", cap.at(1).unwrap()))
+        .map(|cap| {
+            if let Some(value) = cap.at(3) {
+                format!("{} = {}\n", cap.at(1).unwrap(), value)
+            } else {
+                format!("{} = \"*\"\n", cap.at(1).unwrap())
+            }
+        })
         .collect::<String>();
     format!(r#"
 [package]

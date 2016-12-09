@@ -61,6 +61,18 @@ $ echo 'extern crate num_cpus; println!("{} CPUs", num_cpus::get())' | evalrs
 4 CPUs
 ```
 
+If you want to use a specific version of an external crate,
+you will be able to specify it at a trailing comment of the `extern crate` declaration.
+
+```bash
+$ evalrs << EOS
+extern crate num_cpus; // "1.2.0"
+extern crate some_local_crate; // {path = "/peth/to/some_local_crate"}
+
+println!("{} CPUs", num_cpus::get());
+EOS
+```
+
 The command wraps input code snippet (except `extern crate` declarations) with a main function.
 But, if the code has a line which starts with "fn main()",
 it will be passed to `rustc` command without modification.
