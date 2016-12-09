@@ -105,7 +105,7 @@ version = "0.0.0"
 }
 
 fn make_source_code(input: &str) -> String {
-    if Regex::new(r"^fn main\(\)").unwrap().is_match(input) {
+    if Regex::new(r"(?m)^fn +main *\( *\)").unwrap().is_match(input) {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
