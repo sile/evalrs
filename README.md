@@ -67,7 +67,7 @@ you will be able to specify it at a trailing comment of the `extern crate` decla
 ```bash
 $ evalrs << EOS
 extern crate num_cpus; // "1.2.0"
-extern crate some_local_crate; // {path = "/peth/to/some_local_crate"}
+extern crate some_local_crate; // {path = "/path/to/some_local_crate"}
 
 println!("{} CPUs", num_cpus::get());
 EOS
