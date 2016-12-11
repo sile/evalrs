@@ -105,14 +105,17 @@ version = "0.0.0"
 }
 
 fn make_source_code(input: &str) -> String {
-    if Regex::new(r"(?m)^fn +main *\( *\)").unwrap().is_match(input) {
+    let re = Regex::new(r"(?m)^#").unwrap();
+    let input = re.replace_all(input, "");
+
+    if Regex::new(r"(?m)^\s*fn +main *\( *\)").unwrap().is_match(&input) {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
-    let crate_lines = re.captures_iter(input)
+    let crate_lines = re.captures_iter(&input)
         .map(|cap| format!("{}\n", cap.at(1).unwrap()))
         .collect::<String>();
-    let body = re.replace_all(input, "");
+    let body = re.replace_all(&input, "");
     format!("
 {}
 fn main() {{

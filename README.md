@@ -102,6 +102,23 @@ EOS
 a + b = 3
 ```
 
+To support documentation test format,
+`evalrs` removes '#' character at the beginning of the line.
+
+```bash
+$ evalrs << EOS
+# fn main() {
+let a = 1;
+let b = 2;
+println!("a + b = {}", a + b);
+# }
+EOS
+   Compiling evalrs_temp v0.0.0 (file:///tmp/evalrs_temp.0kYvCRAj0TWI)
+    Finished debug [unoptimized + debuginfo] target(s) in 0.20 secs
+     Running `target/debug/evalrs_temp`
+a + b = 3
+```
+
 Emacs Integration
 -----------------
 
