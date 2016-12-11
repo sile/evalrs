@@ -103,7 +103,7 @@ a + b = 3
 ```
 
 To support documentation test format,
-`evalrs` removes '#' character at the beginning of the line.
+`evalrs` removes '#' character at the beginning of a line.
 
 ```bash
 $ evalrs << EOS
