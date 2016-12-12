@@ -105,7 +105,7 @@ version = "0.0.0"
 }
 
 fn make_source_code(input: &str) -> String {
-    let re = Regex::new(r"(?m)^#").unwrap();
+    let re = Regex::new(r"(?m)^# ").unwrap();
     let input = re.replace_all(input, "");
 
     if Regex::new(r"(?m)^\s*fn +main *\( *\)").unwrap().is_match(&input) {
