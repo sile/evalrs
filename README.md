@@ -4,7 +4,7 @@ evalrs
 [![Crates.io: evalrs](http://meritbadge.herokuapp.com/evalrs)](https://crates.io/crates/evalrs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A Rust code snippet evaluator.
+Rust code snippet evaluator.
 
 This tiny command evaluates Rust source code which read from the standard input stream.
 
