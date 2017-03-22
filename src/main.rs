@@ -37,8 +37,8 @@ fn main() {
     {
         // Writes manifest data to `Cargo.toml` file.
         let manifest_file = project_dir.path().join("Cargo.toml");
-        let mut manifest_file = File::create(manifest_file)
-            .expect("Cannot create 'Cargo.toml' file");
+        let mut manifest_file =
+            File::create(manifest_file).expect("Cannot create 'Cargo.toml' file");
         manifest_file.write_all(manifest.as_bytes()).expect("Cannot write to 'Cargo.toml' file");
     }
     {
@@ -85,13 +85,15 @@ fn main() {
 fn make_manifest(input: &str) -> String {
     let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;(\s*//(.+))?").unwrap();
     let dependencies = re.captures_iter(input)
-        .map(|cap| {
-            if let Some(value) = cap.at(3) {
-                format!("{} = {}\n", cap.at(1).unwrap(), value)
-            } else {
-                format!("{} = \"*\"\n", cap.at(1).unwrap())
-            }
-        })
+        .map(|cap| if let Some(value) = cap.at(3) {
+                 if value.contains("=") {
+                     format!("{}\n", value)
+                 } else {
+                     format!("{} = {}\n", cap.at(1).unwrap(), value)
+                 }
+             } else {
+                 format!("{} = \"*\"\n", cap.at(1).unwrap())
+             })
         .collect::<String>();
     format!(r#"
 [package]
@@ -112,9 +114,8 @@ fn make_source_code(input: &str) -> String {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
-    let crate_lines = re.captures_iter(&input)
-        .map(|cap| format!("{}\n", cap.at(1).unwrap()))
-        .collect::<String>();
+    let crate_lines =
+        re.captures_iter(&input).map(|cap| format!("{}\n", cap.at(1).unwrap())).collect::<String>();
     let body = re.replace_all(&input, "");
     format!("
 {}
