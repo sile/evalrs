@@ -1,6 +1,6 @@
 [package]
 name = "evalrs"
-version = "0.0.6"
+version = "0.0.7"
 authors = ["Takeru Ohta <phjgt308@gmail.com>"]
 description = "Rust code snippet evaluator"
 documentation = "https://docs.rs/crate/evalrs"
@@ -10,6 +10,6 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
-clap = "2.19"
+clap = "2"
 regex = "0.1"
 tempdir = "0.3"
