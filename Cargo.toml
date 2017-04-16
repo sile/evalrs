@@ -11,5 +11,5 @@ license = "MIT"
 
 [dependencies]
 clap = "2"
-regex = "0.1"
+regex = "0.2"
 tempdir = "0.3"

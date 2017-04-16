@@ -39,7 +39,9 @@ fn main() {
         let manifest_file = project_dir.path().join("Cargo.toml");
         let mut manifest_file =
             File::create(manifest_file).expect("Cannot create 'Cargo.toml' file");
-        manifest_file.write_all(manifest.as_bytes()).expect("Cannot write to 'Cargo.toml' file");
+        manifest_file
+            .write_all(manifest.as_bytes())
+            .expect("Cannot write to 'Cargo.toml' file");
     }
     {
         // Writes source code to `src/main.rs` file.
@@ -47,7 +49,9 @@ fn main() {
         fs::create_dir(src_dir.clone()).expect("Cannot create 'src/' directory");
         let main_file = src_dir.join("main.rs");
         let mut main_file = File::create(main_file).expect("Cannot create 'main.rs' file");
-        main_file.write_all(source_code.as_bytes()).expect("Cannot write to 'main.rs' file");
+        main_file
+            .write_all(source_code.as_bytes())
+            .expect("Cannot write to 'main.rs' file");
     }
     {
         // Sets up cache data.
@@ -85,14 +89,14 @@ fn main() {
 fn make_manifest(input: &str) -> String {
     let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;(\s*//(.+))?").unwrap();
     let dependencies = re.captures_iter(input)
-        .map(|cap| if let Some(value) = cap.at(3) {
-                 if value.contains("=") {
-                     format!("{}\n", value)
+        .map(|cap| if let Some(value) = cap.get(3) {
+                 if value.as_str().contains("=") {
+                     format!("{}\n", value.as_str())
                  } else {
-                     format!("{} = {}\n", cap.at(1).unwrap(), value)
+                     format!("{} = {}\n", &cap[1], value.as_str())
                  }
              } else {
-                 format!("{} = \"*\"\n", cap.at(1).unwrap())
+                 format!("{} = \"*\"\n", &cap[1])
              })
         .collect::<String>();
     format!(r#"
@@ -110,12 +114,15 @@ fn make_source_code(input: &str) -> String {
     let re = Regex::new(r"(?m)^# ").unwrap();
     let input = re.replace_all(input, "");
 
-    if Regex::new(r"(?m)^\s*fn +main *\( *\)").unwrap().is_match(&input) {
+    if Regex::new(r"(?m)^\s*fn +main *\( *\)")
+           .unwrap()
+           .is_match(&input) {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
-    let crate_lines =
-        re.captures_iter(&input).map(|cap| format!("{}\n", cap.at(1).unwrap())).collect::<String>();
+    let crate_lines = re.captures_iter(&input)
+        .map(|cap| format!("{}\n", &cap[1]))
+        .collect::<String>();
     let body = re.replace_all(&input, "");
     format!("
 {}
