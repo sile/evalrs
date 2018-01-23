@@ -3,20 +3,32 @@ extern crate clap;
 extern crate regex;
 extern crate tempdir;
 
+use std::borrow::Cow;
 use std::env;
-use std::io::{self, Write, Read};
+use std::io::{self, Read, Write};
 use std::fs::{self, File};
 use std::process::{self, Command};
-use clap::App;
+use clap::{App, Arg};
 use tempdir::TempDir;
 use regex::Regex;
 
 fn main() {
-    let _matches = App::new("evalrs")
+    let matches = App::new("evalrs")
         .author(crate_authors!())
         .version(crate_version!())
+        .arg(
+            Arg::with_name("PRINT_RESULT")
+                .short("p")
+                .long("print-result")
+                .help(r#"Prints the evaluation result using `println!("{:?}", result)`"#),
+        )
         .about("A Rust code snippet evaluator")
         .get_matches();
+
+    let mut options = Options::default();
+    if matches.is_present("PRINT_RESULT") {
+        options.print_result = true;
+    }
 
     // Reads standard input stream.
     let input = {
@@ -29,7 +41,7 @@ fn main() {
 
     // Makes manifest data and source code.
     let manifest = make_manifest(&input);
-    let source_code = make_source_code(&input);
+    let source_code = make_source_code(&input, &options);
 
     // Sets up temporary project.
     let project_dir = TempDir::new("evalrs_temp").expect("Cannot create temporary directory");
@@ -89,17 +101,20 @@ fn main() {
 fn make_manifest(input: &str) -> String {
     let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;(\s*//(.+))?").unwrap();
     let dependencies = re.captures_iter(input)
-        .map(|cap| if let Some(value) = cap.get(3) {
-                 if value.as_str().contains("=") {
-                     format!("{}\n", value.as_str())
-                 } else {
-                     format!("{} = {}\n", &cap[1], value.as_str())
-                 }
-             } else {
-                 format!("{} = \"*\"\n", &cap[1])
-             })
+        .map(|cap| {
+            if let Some(value) = cap.get(3) {
+                if value.as_str().contains("=") {
+                    format!("{}\n", value.as_str())
+                } else {
+                    format!("{} = {}\n", &cap[1], value.as_str())
+                }
+            } else {
+                format!("{} = \"*\"\n", &cap[1])
+            }
+        })
         .collect::<String>();
-    format!(r#"
+    format!(
+        r#"
 [package]
 name = "evalrs_temp"
 version = "0.0.0"
@@ -107,28 +122,39 @@ version = "0.0.0"
 [dependencies]
 {}
 "#,
-            dependencies)
+        dependencies
+    )
 }
 
-fn make_source_code(input: &str) -> String {
+fn make_source_code(input: &str, options: &Options) -> String {
     let re = Regex::new(r"(?m)^# ").unwrap();
     let input = re.replace_all(input, "");
 
     if Regex::new(r"(?m)^\s*fn +main *\( *\)")
-           .unwrap()
-           .is_match(&input) {
+        .unwrap()
+        .is_match(&input)
+    {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
     let crate_lines = re.captures_iter(&input)
         .map(|cap| format!("{}\n", &cap[1]))
         .collect::<String>();
-    let body = re.replace_all(&input, "");
-    format!("
+    let mut body = re.replace_all(&input, "");
+    if options.print_result {
+        body = Cow::from(format!(r#"println!("{{:?}}", {});"#, body));
+    }
+    format!(
+        "
 {}
 fn main() {{
 {}
 }}",
-            crate_lines,
-            body)
+        crate_lines, body
+    )
+}
+
+#[derive(Debug, Default)]
+struct Options {
+    print_result: bool,
 }
