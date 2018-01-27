@@ -1,6 +1,6 @@
 [package]
 name = "evalrs"
-version = "0.0.9"
+version = "0.0.10"
 authors = ["Takeru Ohta <phjgt308@gmail.com>"]
 description = "Rust code snippet evaluator"
 homepage = "https://github.com/sile/evalrs"
