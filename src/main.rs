@@ -28,6 +28,11 @@ fn main() {
                 .long("quiet")
                 .help("Don't show cargo's build messages if succeeded"),
         )
+        .arg(
+            Arg::with_name("SNIPPET")
+                .index(1)
+                .help("Rust code snippet to be evaluated. If this is omitted, the snippet will be read from the standard input."),
+        )
         .about("A Rust code snippet evaluator")
         .get_matches();
 
@@ -39,8 +44,10 @@ fn main() {
         options.quiet = true;
     }
 
-    // Reads standard input stream.
-    let input = {
+    let input = if let Some(snippet) = matches.value_of("SNIPPET") {
+        snippet.to_owned()
+    } else {
+        // Reads standard input stream.
         let mut buf = String::new();
         io::stdin()
             .read_to_string(&mut buf)
