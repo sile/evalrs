@@ -22,12 +22,21 @@ fn main() {
                 .long("print-result")
                 .help(r#"Prints the evaluation result using `println!("{:?}", result)`"#),
         )
+        .arg(
+            Arg::with_name("QUIET")
+                .short("q")
+                .long("quiet")
+                .help("Don't show cargo's build messages if succeeded"),
+        )
         .about("A Rust code snippet evaluator")
         .get_matches();
 
     let mut options = Options::default();
     if matches.is_present("PRINT_RESULT") {
         options.print_result = true;
+    }
+    if matches.is_present("QUIET") {
+        options.quiet = true;
     }
 
     // Reads standard input stream.
@@ -76,8 +85,13 @@ fn main() {
     }
 
     // Builds and executes command
-    let mut child = Command::new("cargo")
-        .arg("run")
+    let mut command = Command::new("cargo");
+    command.arg("run");
+    if options.quiet {
+        command.arg("--quiet");
+        //command.stdout(Stdio::null());
+    }
+    let mut child = command
         .current_dir(project_dir.path())
         .spawn()
         .expect("Cannot execute 'cargo run'");
@@ -142,7 +156,7 @@ fn make_source_code(input: &str, options: &Options) -> String {
         .collect::<String>();
     let mut body = re.replace_all(&input, "");
     if options.print_result {
-        body = Cow::from(format!(r#"println!("{{:?}}", {});"#, body));
+        body = Cow::from(format!(r#"println!("{{:?}}", {{ {} }});"#, body));
     }
     format!(
         "
@@ -157,4 +171,5 @@ fn main() {{
 #[derive(Debug, Default)]
 struct Options {
     print_result: bool,
+    quiet: bool,
 }
