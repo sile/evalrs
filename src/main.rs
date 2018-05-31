@@ -3,14 +3,14 @@ extern crate clap;
 extern crate regex;
 extern crate tempdir;
 
+use clap::{App, Arg};
+use regex::Regex;
 use std::borrow::Cow;
 use std::env;
-use std::io::{self, Read, Write};
 use std::fs::{self, File};
+use std::io::{self, Read, Write};
 use std::process::{self, Command};
-use clap::{App, Arg};
 use tempdir::TempDir;
-use regex::Regex;
 
 fn main() {
     let matches = App::new("evalrs")
