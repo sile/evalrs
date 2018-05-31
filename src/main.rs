@@ -122,7 +122,7 @@ fn make_manifest(input: &str) -> String {
     let dependencies = re.captures_iter(input)
         .map(|cap| {
             if let Some(value) = cap.get(3) {
-                if value.as_str().contains("=") {
+                if value.as_str().contains('=') {
                     format!("{}\n", value.as_str())
                 } else {
                     format!("{} = {}\n", &cap[1], value.as_str())
