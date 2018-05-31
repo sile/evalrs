@@ -3,7 +3,7 @@ extern crate clap;
 extern crate regex;
 extern crate tempdir;
 
-use clap::{App, Arg};
+use clap::Arg;
 use regex::Regex;
 use std::borrow::Cow;
 use std::env;
@@ -13,9 +13,7 @@ use std::process::{self, Command};
 use tempdir::TempDir;
 
 fn main() {
-    let matches = App::new("evalrs")
-        .author(crate_authors!())
-        .version(crate_version!())
+    let matches = app_from_crate!()
         .arg(
             Arg::with_name("PRINT_RESULT")
                 .short("p")
