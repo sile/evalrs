@@ -27,6 +27,11 @@ fn main() {
                 .help("Don't show cargo's build messages if succeeded"),
         )
         .arg(
+            Arg::with_name("RELEASE")
+                .long("release")
+                .help("Builds artifacts in release mode, with optimizations")
+        )
+        .arg(
             Arg::with_name("SNIPPET")
                 .index(1)
                 .help("Rust code snippet to be evaluated. If this is omitted, the snippet will be read from the standard input."),
@@ -40,6 +45,9 @@ fn main() {
     }
     if matches.is_present("QUIET") {
         options.quiet = true;
+    }
+    if matches.is_present("RELEASE") {
+        options.release = true;
     }
 
     let input = if let Some(snippet) = matches.value_of("SNIPPET") {
@@ -94,7 +102,9 @@ fn main() {
     command.arg("run");
     if options.quiet {
         command.arg("--quiet");
-        //command.stdout(Stdio::null());
+    }
+    if options.release {
+        command.arg("--release");
     }
     let mut child = command
         .current_dir(project_dir.path())
@@ -177,4 +187,5 @@ fn main() {{
 struct Options {
     print_result: bool,
     quiet: bool,
+    release: bool,
 }
