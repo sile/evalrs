@@ -12,3 +12,6 @@ license = "MIT"
 clap = "2"
 regex = "1"
 tempdir = "0.3"
+
+[profile.release]
+lto = true
