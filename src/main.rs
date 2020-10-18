@@ -12,6 +12,8 @@ use std::io::{self, Read, Write};
 use std::process::{self, Command};
 use tempdir::TempDir;
 
+const TMP_PROJECT_NAME: &str = "evalrs_temp";
+
 fn main() {
     let matches = app_from_crate!()
         .arg(
@@ -66,7 +68,8 @@ fn main() {
     let source_code = make_source_code(&input, &options);
 
     // Sets up temporary project.
-    let project_dir = TempDir::new("evalrs_temp").expect("Cannot create temporary directory");
+    let project_dir = TempDir::new(TMP_PROJECT_NAME)
+        .expect("Cannot create temporary directory");
     let cache_dir = env::temp_dir().join("evalrs_cache/");
     {
         // Writes manifest data to `Cargo.toml` file.
@@ -97,20 +100,36 @@ fn main() {
             .expect("Cannot move 'target/' from cache directory");
     }
 
-    // Builds and executes command
+    // Build command
     let mut command = Command::new("cargo");
-    command.arg("run");
+    command.arg("build");
     if options.quiet {
         command.arg("--quiet");
     }
     if options.release {
         command.arg("--release");
     }
-    let mut child = command
+    let mut exit_status = command
         .current_dir(project_dir.path())
         .spawn()
-        .expect("Cannot execute 'cargo run'");
-    let exit_status = child.wait().expect("Cannot wait child process");
+        .expect("Cannot execute 'cargo build'")
+        .wait().expect("Cannot wait cargo process");
+
+    // Execute the built command, done separately from building command
+    // to ensure execution in the working directory.
+    if exit_status.success() {
+        let path = project_dir.path().join("target")
+            .join(if options.release { "release" } else { "debug" })
+            .join(TMP_PROJECT_NAME);
+        // At this point the previous exit status was zero, so we're only
+        // interested in the new exit status that could potentially be
+        // nonzero.
+        exit_status = Command::new(path)
+            .spawn()
+            .expect("Cannot execute the built command")
+            .wait()
+            .expect("Cannot wait built process");
+    }
 
     // Moves 'target/' to cache directory
     {
@@ -122,8 +141,22 @@ fn main() {
         }
     }
 
-    if let Some(code) = exit_status.code() {
-        process::exit(code);
+    exit_on_fail(exit_status);
+}
+
+/**
+Exit immediately if the `ExitStatus` from the child process wasn't
+nonzero, propagating the exit code if it exists.
+*/
+fn exit_on_fail(exs: process::ExitStatus) {
+    if ! exs.success() {
+        match exs.code() {
+            Some(code) => process::exit(code),
+            None => {
+                eprintln!("Failed to get exit status code");
+                process::exit(1);
+            }
+        }
     }
 }
 
@@ -145,12 +178,13 @@ fn make_manifest(input: &str) -> String {
     format!(
         r#"
 [package]
-name = "evalrs_temp"
+name = "{}"
 version = "0.0.0"
 
 [dependencies]
 {}
 "#,
+        TMP_PROJECT_NAME,
         dependencies
     )
 }
