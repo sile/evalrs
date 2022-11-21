@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate clap;
-
-use clap::Arg;
+use clap::Parser;
 use regex::Regex;
 use std::borrow::Cow;
 use std::env;
@@ -12,46 +9,31 @@ use tempdir::TempDir;
 
 const TMP_PROJECT_NAME: &str = "evalrs_temp";
 
+/// Rust code snippet evaluator
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Rust code snippet to be evaluated. If this is omitted, the snippet will be read from the standard input.
+    snippet: Option<String>,
+
+    /// Prints the evaluation result using `println!("{:?}", result)`
+    #[arg(long, short)]
+    print_result: bool,
+
+    /// Don't show cargo's build messages if succeeded
+    #[arg(long, short)]
+    quiet: bool,
+
+    /// Builds artifacts in release mode, with optimizations
+    #[arg(long)]
+    release: bool,
+}
+
 fn main() {
-    let matches = app_from_crate!()
-        .arg(
-            Arg::with_name("PRINT_RESULT")
-                .short("p")
-                .long("print-result")
-                .help(r#"Prints the evaluation result using `println!("{:?}", result)`"#),
-        )
-        .arg(
-            Arg::with_name("QUIET")
-                .short("q")
-                .long("quiet")
-                .help("Don't show cargo's build messages if succeeded"),
-        )
-        .arg(
-            Arg::with_name("RELEASE")
-                .long("release")
-                .help("Builds artifacts in release mode, with optimizations")
-        )
-        .arg(
-            Arg::with_name("SNIPPET")
-                .index(1)
-                .help("Rust code snippet to be evaluated. If this is omitted, the snippet will be read from the standard input."),
-        )
-        .about("A Rust code snippet evaluator")
-        .get_matches();
+    let args = Args::parse();
 
-    let mut options = Options::default();
-    if matches.is_present("PRINT_RESULT") {
-        options.print_result = true;
-    }
-    if matches.is_present("QUIET") {
-        options.quiet = true;
-    }
-    if matches.is_present("RELEASE") {
-        options.release = true;
-    }
-
-    let input = if let Some(snippet) = matches.value_of("SNIPPET") {
-        snippet.to_owned()
+    let input = if let Some(snippet) = args.snippet.clone() {
+        snippet
     } else {
         // Reads standard input stream.
         let mut buf = String::new();
@@ -63,7 +45,7 @@ fn main() {
 
     // Makes manifest data and source code.
     let manifest = make_manifest(&input);
-    let source_code = make_source_code(&input, &options);
+    let source_code = make_source_code(&input, &args);
 
     // Sets up temporary project.
     let project_dir = TempDir::new(TMP_PROJECT_NAME).expect("Cannot create temporary directory");
@@ -100,10 +82,10 @@ fn main() {
     // Build command
     let mut command = Command::new("cargo");
     command.arg("build");
-    if options.quiet {
+    if args.quiet {
         command.arg("--quiet");
     }
-    if options.release {
+    if args.release {
         command.arg("--release");
     }
     let mut exit_status = command
@@ -119,7 +101,7 @@ fn main() {
         let path = project_dir
             .path()
             .join("target")
-            .join(if options.release { "release" } else { "debug" })
+            .join(if args.release { "release" } else { "debug" })
             .join(TMP_PROJECT_NAME);
         // At this point the previous exit status was zero, so we're only
         // interested in the new exit status that could potentially be
@@ -189,7 +171,7 @@ version = "0.0.0"
     )
 }
 
-fn make_source_code(input: &str, options: &Options) -> String {
+fn make_source_code(input: &str, args: &Args) -> String {
     let re = Regex::new(r"(?m)^# ").unwrap();
     let input = re.replace_all(input, "");
 
@@ -205,7 +187,7 @@ fn make_source_code(input: &str, options: &Options) -> String {
         .map(|cap| format!("{}\n", &cap[1]))
         .collect::<String>();
     let mut body = re.replace_all(&input, "");
-    if options.print_result {
+    if args.print_result {
         body = Cow::from(format!(r#"println!("{{:?}}", {{ {} }});"#, body));
     }
     format!(
@@ -216,11 +198,4 @@ fn main() {{
 }}",
         crate_lines, body
     )
-}
-
-#[derive(Debug, Default)]
-struct Options {
-    print_result: bool,
-    quiet: bool,
-    release: bool,
 }

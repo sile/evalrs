@@ -10,7 +10,7 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-clap = "2"
+clap = { version = "4", features = ["derive"] }
 regex = "1"
 tempdir = "0.3"
 
