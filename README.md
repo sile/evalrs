@@ -1,7 +1,7 @@
 evalrs
 ======
 
-[![Crates.io: evalrs](http://meritbadge.herokuapp.com/evalrs)](https://crates.io/crates/evalrs)
+[![evalrs](https://img.shields.io/crates/v/evalrs.svg)](https://crates.io/crates/evalrs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Rust code snippet evaluator.

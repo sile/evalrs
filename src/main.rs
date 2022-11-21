@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate clap;
-extern crate regex;
-extern crate tempdir;
 
 use clap::Arg;
 use regex::Regex;
@@ -68,8 +66,7 @@ fn main() {
     let source_code = make_source_code(&input, &options);
 
     // Sets up temporary project.
-    let project_dir = TempDir::new(TMP_PROJECT_NAME)
-        .expect("Cannot create temporary directory");
+    let project_dir = TempDir::new(TMP_PROJECT_NAME).expect("Cannot create temporary directory");
     let cache_dir = env::temp_dir().join("evalrs_cache/");
     {
         // Writes manifest data to `Cargo.toml` file.
@@ -113,12 +110,15 @@ fn main() {
         .current_dir(project_dir.path())
         .spawn()
         .expect("Cannot execute 'cargo build'")
-        .wait().expect("Cannot wait cargo process");
+        .wait()
+        .expect("Cannot wait cargo process");
 
     // Execute the built command, done separately from building command
     // to ensure execution in the working directory.
     if exit_status.success() {
-        let path = project_dir.path().join("target")
+        let path = project_dir
+            .path()
+            .join("target")
             .join(if options.release { "release" } else { "debug" })
             .join(TMP_PROJECT_NAME);
         // At this point the previous exit status was zero, so we're only
@@ -149,7 +149,7 @@ Exit immediately if the `ExitStatus` from the child process wasn't
 nonzero, propagating the exit code if it exists.
 */
 fn exit_on_fail(exs: process::ExitStatus) {
-    if ! exs.success() {
+    if !exs.success() {
         match exs.code() {
             Some(code) => process::exit(code),
             None => {
@@ -162,7 +162,8 @@ fn exit_on_fail(exs: process::ExitStatus) {
 
 fn make_manifest(input: &str) -> String {
     let re = Regex::new(r"extern\s+crate\s+([a-z0-9_]+)\s*;(\s*//(.+))?").unwrap();
-    let dependencies = re.captures_iter(input)
+    let dependencies = re
+        .captures_iter(input)
         .map(|cap| {
             if let Some(value) = cap.get(3) {
                 if value.as_str().contains('=') {
@@ -184,8 +185,7 @@ version = "0.0.0"
 [dependencies]
 {}
 "#,
-        TMP_PROJECT_NAME,
-        dependencies
+        TMP_PROJECT_NAME, dependencies
     )
 }
 
@@ -200,7 +200,8 @@ fn make_source_code(input: &str, options: &Options) -> String {
         return input.to_string();
     }
     let re = Regex::new(r"(extern\s+crate\s+[a-z0-9_]+\s*;)").unwrap();
-    let crate_lines = re.captures_iter(&input)
+    let crate_lines = re
+        .captures_iter(&input)
         .map(|cap| format!("{}\n", &cap[1]))
         .collect::<String>();
     let mut body = re.replace_all(&input, "");
