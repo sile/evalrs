@@ -5,7 +5,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::process::{self, Command};
-use tempdir::TempDir;
+use tempfile::Builder;
 
 const TMP_PROJECT_NAME: &str = "evalrs_temp";
 
@@ -48,7 +48,10 @@ fn main() {
     let source_code = make_source_code(&input, &args);
 
     // Sets up temporary project.
-    let project_dir = TempDir::new(TMP_PROJECT_NAME).expect("Cannot create temporary directory");
+    let project_dir = Builder::new()
+        .prefix(TMP_PROJECT_NAME)
+        .tempdir()
+        .expect("Cannot create temporary directory");
     let cache_dir = env::temp_dir().join("evalrs_cache/");
     {
         // Writes manifest data to `Cargo.toml` file.

@@ -12,7 +12,7 @@ edition = "2021"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 regex = "1"
-tempdir = "0.3"
+tempfile = "3.7.1"
 
 [profile.release]
 lto = true
