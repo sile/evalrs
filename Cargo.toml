@@ -7,7 +7,7 @@ homepage = "https://github.com/sile/evalrs"
 repository = "https://github.com/sile/evalrs"
 readme = "README.md"
 license = "MIT"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 noargs = "0.3.2"
