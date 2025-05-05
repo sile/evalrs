@@ -1,4 +1,3 @@
-use clap::Parser;
 use regex::Regex;
 use std::borrow::Cow;
 use std::env;
@@ -9,28 +8,69 @@ use tempfile::Builder;
 
 const TMP_PROJECT_NAME: &str = "evalrs_temp";
 
-/// Rust code snippet evaluator
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
 struct Args {
-    /// Rust code snippet to be evaluated. If this is omitted, the snippet will be read from the standard input.
     snippet: Option<String>,
-
-    /// Prints the evaluation result using `println!("{:?}", result)`
-    #[arg(long, short)]
     print_result: bool,
-
-    /// Don't show cargo's build messages if succeeded
-    #[arg(long, short)]
     quiet: bool,
-
-    /// Builds artifacts in release mode, with optimizations
-    #[arg(long)]
     release: bool,
 }
 
-fn main() {
-    let args = Args::parse();
+impl Args {
+    fn parse() -> noargs::Result<Option<Self>> {
+        let mut args = noargs::raw_args();
+        args.metadata_mut().app_name = env!("CARGO_PKG_NAME");
+        args.metadata_mut().app_description = "Rust code snippet evaluator";
+
+        if noargs::VERSION_FLAG.take(&mut args).is_present() {
+            println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+            return Ok(None);
+        }
+        noargs::HELP_FLAG.take_help(&mut args);
+
+        let print_result = noargs::flag("print-result")
+            .short('p')
+            .doc("Prints the evaluation result using `println!(\"{:?}\", result)`")
+            .take(&mut args)
+            .is_present();
+
+        let quiet = noargs::flag("quiet")
+            .short('q')
+            .doc("Don't show cargo's build messages if succeeded")
+            .take(&mut args)
+            .is_present();
+
+        let release = noargs::flag("release")
+            .doc("Builds artifacts in release mode, with optimizations")
+            .take(&mut args)
+            .is_present();
+
+        let snippet = noargs::arg("[SNIPPET]")
+            .doc(concat!(
+                "Rust code snippet to be evaluated. ",
+                "If this is omitted, the snippet will be read from the standard input."
+            ))
+            .take(&mut args)
+            .present()
+            .map(|a| a.value().to_owned());
+
+        if let Some(help) = args.finish()? {
+            print!("{help}");
+            return Ok(None);
+        }
+
+        Ok(Some(Self {
+            snippet,
+            print_result,
+            quiet,
+            release,
+        }))
+    }
+}
+
+fn main() -> noargs::Result<()> {
+    let Some(args) = Args::parse()? else {
+        return Ok(());
+    };
 
     let input = if let Some(snippet) = args.snippet.clone() {
         snippet
@@ -127,6 +167,8 @@ fn main() {
     }
 
     exit_on_fail(exit_status);
+
+    Ok(())
 }
 
 /**
